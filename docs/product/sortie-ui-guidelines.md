@@ -9,10 +9,10 @@ Use these guidelines when building UI for Sortie so the app feels consistent, mo
 
 ## 1. Design References
 
-| Source | Location | Use for |
-|--------|----------|--------|
-| **Cap** | `inspo/Cap/apps/desktop/` | Window chrome, titlebar, settings layout, light/dark tokens, typography hierarchy |
-| **SpaceDrive** | `inspo/spacedrive/packages/ui/` and `packages/interface/` | Buttons, inputs, progress, sidebar nav, semantic color system, top bar |
+| Source         | Location                                                  | Use for                                                                           |
+| -------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| **Cap**        | `inspo/Cap/apps/desktop/`                                 | Window chrome, titlebar, settings layout, light/dark tokens, typography hierarchy |
+| **SpaceDrive** | `inspo/spacedrive/packages/ui/` and `packages/interface/` | Buttons, inputs, progress, sidebar nav, semantic color system, top bar            |
 
 When in doubt, open the reference file in `inspo/` and match patterns (spacing, radii, borders, states).
 
@@ -20,8 +20,8 @@ When in doubt, open the reference file in `inspo/` and match patterns (spacing, 
 
 ## 2. App Identity
 
-- **Product name:** Sortie  
-- **Window title:** “Sortie” (and e.g. “Sortie – 12/45 clips” when in session).  
+- **Product name:** Sortie
+- **Window title:** “Sortie” (and e.g. “Sortie – 12/45 clips” when in session).
 - Use “Sortie” in docs, window chrome, and user-facing strings (not “Video Organizer” or “tauri-app”).
 
 ---
@@ -50,7 +50,7 @@ Reference: `inspo/Cap/apps/desktop/src/routes/(window-chrome).tsx` (layout, head
 - **SpaceDrive-style semantics (inspo/spacedrive/packages/ui/style/colors.scss, colors.js):**
   - **Accent:** Single accent (e.g. blue) for primary actions, progress, focus. Use sparingly.
   - **Ink:** Primary text, dull, faint for hierarchy.
-  - **Surfaces:** app-box, app-line, sidebar-* if we add a sidebar; button/hover/selected for interactive areas.
+  - **Surfaces:** app-box, app-line, sidebar-\* if we add a sidebar; button/hover/selected for interactive areas.
 - **Destructive:** Red/critical only for delete or destructive actions (e.g. “Move to trash”).
 - Prefer semantic tokens (e.g. `bg-app-box`, `text-ink-faint`) over raw grays in shared components so theme stays consistent.
 

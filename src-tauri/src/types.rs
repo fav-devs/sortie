@@ -148,7 +148,9 @@ pub enum SwipeAction {
     Delete,
     Skip,
     #[serde(rename = "custom_folder")]
-    CustomFolder { path: String },
+    CustomFolder {
+        path: String,
+    },
 }
 
 /// Mapping of swipe direction to action.
@@ -172,17 +174,9 @@ impl Default for SwipeConfig {
 }
 
 /// Persistent organizer settings (swipe config + optional options).
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, Type)]
 pub struct OrganizerConfig {
     pub swipe: SwipeConfig,
-}
-
-impl Default for OrganizerConfig {
-    fn default() -> Self {
-        Self {
-            swipe: SwipeConfig::default(),
-        }
-    }
 }
 
 /// Session snapshot for resume (optional; used in future save_session/load_session).

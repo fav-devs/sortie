@@ -1,4 +1,5 @@
 # Product Requirements Document (PRD)
+
 ## Video Clip Organizer - Tinder-Style Desktop App
 
 **Version:** 1.0  
@@ -10,10 +11,13 @@
 ## 1. Product Overview
 
 ### 1.1 Vision
+
 A desktop application that transforms the tedious process of video clip organization into a fast, intuitive experience using swipe-based interactions. Users can rapidly categorize hundreds of video clips with simple gestures, dramatically reducing the time spent on pre-production organization.
 
 ### 1.2 Problem Statement
+
 Content creators, video editors, and filmmakers often have hundreds of raw video clips that need to be sorted and categorized. Current solutions require:
+
 - Manual drag-and-drop into folders
 - Watching clips in traditional file browsers
 - Multiple clicks per decision
@@ -22,7 +26,9 @@ Content creators, video editors, and filmmakers often have hundreds of raw video
 This results in hours of mundane organizational work before actual editing can begin.
 
 ### 1.3 Solution
+
 A swipe-based video organizer that allows users to:
+
 - Watch clips in a focused, distraction-free interface
 - Make instant categorization decisions with swipe gestures
 - Configure custom workflows matching their needs
@@ -33,12 +39,14 @@ A swipe-based video organizer that allows users to:
 ## 2. Goals and Success Metrics
 
 ### 2.1 Primary Goals
+
 1. Reduce video organization time by 70% compared to traditional methods
 2. Support processing 100+ clips in a single session
 3. Zero learning curve - intuitive from first use
 4. Maintain 100% accuracy with undo capabilities
 
 ### 2.2 Success Metrics
+
 - **Speed**: Average 3-5 seconds per clip decision
 - **Accuracy**: <2% undo rate
 - **Adoption**: 90% of users complete first session
@@ -50,14 +58,17 @@ A swipe-based video organizer that allows users to:
 ## 3. User Personas
 
 ### 3.1 Primary: Professional Video Editor (Sarah, 28)
+
 - Works on documentary projects with 500+ clips per shoot
 - Needs: Fast organization, A-roll/B-roll separation, non-destructive workflow
 
 ### 3.2 Secondary: Content Creator (Mike, 24)
+
 - YouTube creator with multiple camera angles per shoot
 - Needs: Quick sorting, delete bad takes, keep best moments
 
 ### 3.3 Tertiary: Hobbyist Filmmaker (Jamie, 35)
+
 - Weekend filmmaker sorting travel footage
 - Needs: Simple workflow, clear categorization
 
@@ -66,6 +77,7 @@ A swipe-based video organizer that allows users to:
 ## 4. Feature Requirements (Summary)
 
 ### 4.1 Core (MVP) – P0
+
 - **Video Playback:** MP4/MOV, hardware-accelerated, scrub, auto-play next, play/pause, volume
 - **Swipe Gestures:** 4 directions (Up/Down/Left/Right), visual feedback, 100px threshold, touch + mouse
 - **Configurable Actions:** Map actions to directions (A-roll, B-roll, Delete, Skip, Custom 1–4), save per project
@@ -74,6 +86,7 @@ A swipe-based video organizer that allows users to:
 - **Progress:** X of Y, progress bar, ETA, session stats, persist for resume
 
 ### 4.2 Enhanced – P1
+
 - Playback speed UI, folder browser, batch ops, CSV export, dark/light, thumbnails, filter by decision
 
 ---

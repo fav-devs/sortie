@@ -1,9 +1,10 @@
 # Task 6: Process clip, undo, progress, and polish (Sortie)
 
 **Phase:** 1 – MVP, Week 3  
-**Ref:** [Implementation Plan](../docs/product/implementation-plan.md) §6 Week 3 · [Sortie UI Guidelines](../docs/product/sortie-ui-guidelines.md) §8 (progress), window title “Sortie – X/Y clips”
+**Ref:** [Implementation Plan](../product/implementation-plan.md) §6 Week 3 · [Sortie UI Guidelines](../product/sortie-ui-guidelines.md) §8 (progress), window title “Sortie – X/Y clips”
 
 ## Goal
+
 Implement file operations (process_clip, undo_action), progress UI, and error handling so the full Sortie MVP loop works.
 
 ## Acceptance criteria
@@ -18,5 +19,6 @@ Implement file operations (process_clip, undo_action), progress UI, and error ha
 - [ ] `npm run check:all` passes; manual test: load folder, swipe, undo, complete session
 
 ## Notes
+
 - Use Tauri/OS trash for Delete if available; otherwise move to a "Trash" subfolder or document behavior.
 - Progress bar and ETA can be derived from store (currentIndex, clips.length, startTime).

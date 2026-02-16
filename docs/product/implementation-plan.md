@@ -12,24 +12,24 @@ This document maps the [Product Requirements Document](./video-organizer-prd.md)
 
 ## 1. Stack Alignment
 
-| PRD Suggestion     | Template Choice              | Notes                                      |
-|--------------------|-----------------------------|--------------------------------------------|
-| Tauri 1.5+         | **Tauri v2**                | Use v2 APIs and capabilities               |
-| React 18+          | **React 19**                | Already in template                        |
-| Framer Motion      | **CSS transitions first**  | 200ms ease-out per PRD; add Framer if needed |
-| TailwindCSS        | **Tailwind v4**             | Already in template                        |
-| Rust backend       | **Rust 1.82**               | File ops, config, commands in `src-tauri`  |
+| PRD Suggestion | Template Choice           | Notes                                        |
+| -------------- | ------------------------- | -------------------------------------------- |
+| Tauri 1.5+     | **Tauri v2**              | Use v2 APIs and capabilities                 |
+| React 18+      | **React 19**              | Already in template                          |
+| Framer Motion  | **CSS transitions first** | 200ms ease-out per PRD; add Framer if needed |
+| TailwindCSS    | **Tailwind v4**           | Already in template                          |
+| Rust backend   | **Rust 1.82**             | File ops, config, commands in `src-tauri`    |
 
 ---
 
 ## 2. State Architecture (Onion)
 
-| Data                         | Layer            | Storage / API                                      |
-|-----------------------------|------------------|----------------------------------------------------|
-| Current clip index, queue   | **Zustand**       | `organizerStore` – in-memory session                |
-| Swipe config (per project)  | **Persistent**   | Rust: `organizer_config.json` in app data dir      |
-| Session progress (resume)  | **Persistent**   | Rust: optional `session.json` or in config         |
-| Undo history                | **Zustand**       | In-memory stack; undo restores file + queue state  |
+| Data                       | Layer          | Storage / API                                     |
+| -------------------------- | -------------- | ------------------------------------------------- |
+| Current clip index, queue  | **Zustand**    | `organizerStore` – in-memory session              |
+| Swipe config (per project) | **Persistent** | Rust: `organizer_config.json` in app data dir     |
+| Session progress (resume)  | **Persistent** | Rust: optional `session.json` or in config        |
+| Undo history               | **Zustand**    | In-memory stack; undo restores file + queue state |
 
 - **Swipe config:** Load/save via Tauri commands; frontend can use TanStack Query with `queryKey: ['organizer-config']` and mutations for save, or load once and keep in Zustand. Prefer TanStack Query for persistence.
 - **Clip queue:** Loaded via `load_videos` command → stored in Zustand. Progress (current index, processed count) lives in same store. Persist “last session” (path + index) in Rust for resume.
@@ -105,15 +105,15 @@ pub struct OrganizerSession {
 
 All in a new module `src-tauri/src/commands/organizer.rs`, registered in `bindings.rs`.
 
-| Command              | Signature (conceptual) | Purpose |
-|----------------------|------------------------|---------|
-| `load_videos`        | `(path: String) -> Result<Vec<VideoClip>, String>` | List video files (mp4/mov) in directory |
-| `process_clip`       | `(clip: VideoClip, action: SwipeAction) -> Result<(), String>` | Move/copy/delete per action; atomic ops |
-| `undo_action`        | `(clip: VideoClip, original_path: String) -> Result<(), String>` | Restore file to original path |
-| `load_organizer_config` | `() -> Result<OrganizerConfig, String>` | Load swipe config + defaults |
-| `save_organizer_config` | `(config: OrganizerConfig) -> Result<(), String>` | Save to app data dir, atomic |
-| `save_session`       | `(session: OrganizerSession) -> Result<(), String>` | Optional; for resume |
-| `load_session`       | `() -> Result<Option<OrganizerSession>, String>` | Optional; for resume |
+| Command                 | Signature (conceptual)                                           | Purpose                                 |
+| ----------------------- | ---------------------------------------------------------------- | --------------------------------------- |
+| `load_videos`           | `(path: String) -> Result<Vec<VideoClip>, String>`               | List video files (mp4/mov) in directory |
+| `process_clip`          | `(clip: VideoClip, action: SwipeAction) -> Result<(), String>`   | Move/copy/delete per action; atomic ops |
+| `undo_action`           | `(clip: VideoClip, original_path: String) -> Result<(), String>` | Restore file to original path           |
+| `load_organizer_config` | `() -> Result<OrganizerConfig, String>`                          | Load swipe config + defaults            |
+| `save_organizer_config` | `(config: OrganizerConfig) -> Result<(), String>`                | Save to app data dir, atomic            |
+| `save_session`          | `(session: OrganizerSession) -> Result<(), String>`              | Optional; for resume                    |
+| `load_session`          | `() -> Result<Option<OrganizerSession>, String>`                 | Optional; for resume                    |
 
 - **OrganizerConfig** can include `SwipeConfig` plus options (e.g. copy vs move, delete to trash).
 - File ops: use existing patterns (atomic write, path validation). Reuse or extend `validate_filename` / path checks; block system dirs.

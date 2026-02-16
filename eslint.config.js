@@ -97,6 +97,7 @@ export default tseslint.config(
   {
     ignores: [
       'dist/**',
+      'inspo/**', // Reference apps (Cap, SpaceDrive) – not part of this codebase
       'node_modules/**',
       'src-tauri/target/**',
       'src-tauri/gen/**',

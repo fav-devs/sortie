@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Reference apps (Cap, SpaceDrive) – not part of this codebase
+inspo/
+
 # Build outputs
 dist/
 build/

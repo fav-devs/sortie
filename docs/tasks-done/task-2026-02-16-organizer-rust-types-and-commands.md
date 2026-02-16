@@ -1,9 +1,10 @@
 # Task 1: Organizer Rust types and commands (Sortie)
 
 **Phase:** 1 – MVP, Week 1  
-**Ref:** [Implementation Plan](../docs/product/implementation-plan.md) §4, §6 Week 1
+**Ref:** [Implementation Plan](../product/implementation-plan.md) §4, §6 Week 1
 
 ## Goal
+
 Add Rust data types and Tauri commands for **Sortie** so the frontend can load videos, load/save swipe config, and (later) process clips and undo.
 
 ## Acceptance criteria
@@ -24,5 +25,6 @@ Add Rust data types and Tauri commands for **Sortie** so the frontend can load v
 - [ ] `npm run check:all` passes (including `rust:clippy`, `rust:test`)
 
 ## Notes
+
 - Reuse existing `validate_filename` / path safety patterns from the codebase.
 - Default `SwipeConfig` can be e.g. Up=Skip, Down=Delete, Left=BRoll, Right=ARoll.

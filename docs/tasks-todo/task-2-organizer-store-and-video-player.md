@@ -1,9 +1,10 @@
 # Task 2: Organizer store and video player (Sortie)
 
 **Phase:** 1 – MVP, Week 1  
-**Ref:** [Implementation Plan](../docs/product/implementation-plan.md) §5.1, §6 Week 1 · [Sortie UI Guidelines](../docs/product/sortie-ui-guidelines.md) for VideoPlayer/chrome
+**Ref:** [Implementation Plan](../product/implementation-plan.md) §5.1, §6 Week 1 · [Sortie UI Guidelines](../product/sortie-ui-guidelines.md) for VideoPlayer/chrome
 
 ## Goal
+
 Create the Sortie organizer Zustand store and the VideoPlayer component so the app can hold a clip queue and play the current clip with basic controls.
 
 ## Acceptance criteria
@@ -20,5 +21,6 @@ Create the Sortie organizer Zustand store and the VideoPlayer component so the a
 - [ ] `npm run check:all` passes; no new ast-grep violations
 
 ## Notes
+
 - For webview file access, Tauri may require `convertFileSrc` from `@tauri-apps/api` for local paths – use that for `video.src`.
 - Preload: set `video.preload = "auto"` and/or swap in next sources when advancing (implement in Task 4 if needed).

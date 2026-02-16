@@ -1,9 +1,10 @@
 # Task 5: Keyboard shortcuts and organizer settings (Sortie)
 
 **Phase:** 1 – MVP, Week 2  
-**Ref:** [Implementation Plan](../docs/product/implementation-plan.md) §6 Week 2 · [Sortie UI Guidelines](../docs/product/sortie-ui-guidelines.md) §7 (settings), §9 (shortcuts overlay)
+**Ref:** [Implementation Plan](../product/implementation-plan.md) §6 Week 2 · [Sortie UI Guidelines](../product/sortie-ui-guidelines.md) §7 (settings), §9 (shortcuts overlay)
 
 ## Goal
+
 Arrow keys trigger swipe actions; Space = play/pause; 1–5 = speed; Z/Cmd+Z = undo; ? = shortcuts overlay. Settings panel to map swipe directions to actions. Follow Sortie UI guidelines for settings layout and shortcuts modal.
 
 ## Acceptance criteria

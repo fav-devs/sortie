@@ -12,7 +12,11 @@ const ORGANIZER_CONFIG_FILENAME: &str = "organizer_config.json";
 #[cfg(unix)]
 const BLOCKED_PATH_PREFIXES: &[&str] = &["/usr", "/etc", "/bin", "/sbin", "/lib", "/System"];
 #[cfg(windows)]
-const BLOCKED_PATH_PREFIXES: &[&str] = &["C:\\Windows", "C:\\Program Files", "C:\\Program Files (x86)"];
+const BLOCKED_PATH_PREFIXES: &[&str] = &[
+    "C:\\Windows",
+    "C:\\Program Files",
+    "C:\\Program Files (x86)",
+];
 
 fn is_blocked_directory(path: &Path) -> bool {
     let path_str = path.to_string_lossy();
@@ -36,7 +40,7 @@ fn has_video_extension(path: &Path) -> bool {
         .and_then(|e| e.to_str())
         .map(|e| {
             let ext_lower = e.to_lowercase();
-            VIDEO_EXTENSIONS.iter().any(|&x| x == ext_lower.as_str())
+            VIDEO_EXTENSIONS.contains(&ext_lower.as_str())
         })
         .unwrap_or(false)
 }
@@ -54,7 +58,8 @@ pub fn load_videos(path: String) -> Result<Vec<VideoClip>, String> {
     }
 
     let mut clips = Vec::new();
-    let entries = std::fs::read_dir(&path_buf).map_err(|e| format!("Failed to read directory: {e}"))?;
+    let entries =
+        std::fs::read_dir(&path_buf).map_err(|e| format!("Failed to read directory: {e}"))?;
 
     for entry in entries {
         let entry = entry.map_err(|e| format!("Failed to read entry: {e}"))?;

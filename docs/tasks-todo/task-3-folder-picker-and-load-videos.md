@@ -1,9 +1,10 @@
 # Task 3: Folder picker and load videos (Sortie)
 
 **Phase:** 1 – MVP, Week 1  
-**Ref:** [Implementation Plan](../docs/product/implementation-plan.md) §6 Week 1 · [Sortie UI Guidelines](../docs/product/sortie-ui-guidelines.md) for empty state / CTA
+**Ref:** [Implementation Plan](../product/implementation-plan.md) §6 Week 1 · [Sortie UI Guidelines](../product/sortie-ui-guidelines.md) for empty state / CTA
 
 ## Goal
+
 Let the user pick a source folder and load its video files into the Sortie organizer queue.
 
 ## Acceptance criteria
@@ -16,4 +17,5 @@ Let the user pick a source folder and load its video files into the Sortie organ
 - [ ] `npm run check:all` passes
 
 ## Notes
+
 - If the app starts with no folder selected, show a simple "Select folder to start" screen; after load, show the main swipe/organizer view.

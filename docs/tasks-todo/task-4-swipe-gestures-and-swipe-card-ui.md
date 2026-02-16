@@ -1,9 +1,10 @@
 # Task 4: Swipe gestures and SwipeCard UI (Sortie)
 
 **Phase:** 1 – MVP, Week 2  
-**Ref:** [Implementation Plan](../docs/product/implementation-plan.md) §6 Week 2 · [Sortie UI Guidelines](../docs/product/sortie-ui-guidelines.md) §9 (swipe card, direction labels)
+**Ref:** [Implementation Plan](../product/implementation-plan.md) §6 Week 2 · [Sortie UI Guidelines](../product/sortie-ui-guidelines.md) §9 (swipe card, direction labels)
 
 ## Goal
+
 Implement 4-direction swipe detection (pointer/touch + mouse) and the SwipeCard visual feedback (tilt, opacity, fly-off, spring-back).
 
 ## Acceptance criteria
@@ -21,4 +22,5 @@ Implement 4-direction swipe detection (pointer/touch + mouse) and the SwipeCard 
 - [ ] `npm run check:all` passes
 
 ## Notes
+
 - Map direction to action using `OrganizerConfig` from store or from TanStack Query.
