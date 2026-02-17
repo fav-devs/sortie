@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { OrganizerConfig } from '@/lib/tauri-bindings'
+import type { OrganizerConfig, SwipeAction } from '@/lib/tauri-bindings'
 import {
   Dialog,
   DialogContent,
@@ -20,9 +20,6 @@ import {
 } from '@/components/ui/select'
 import {
   DEFAULT_ORGANIZER_CONFIG,
-  actionToOptionId,
-  optionIdToAction,
-  type SwipeActionOptionId,
   type SwipeDirection,
 } from './organizer-config'
 
@@ -34,16 +31,9 @@ interface OrganizerSettingsProps {
 }
 
 const SWIPE_DIRECTIONS: SwipeDirection[] = ['up', 'down', 'left', 'right']
-const ACTION_OPTIONS: SwipeActionOptionId[] = [
-  'ARoll',
-  'BRoll',
-  'Delete',
-  'Skip',
-  'Custom1',
-  'Custom2',
-  'Custom3',
-  'Custom4',
-]
+
+type ActionType = 'Move' | 'Delete' | 'Skip'
+
 
 export function OrganizerSettings({
   open,
@@ -61,31 +51,46 @@ export function OrganizerSettings({
     }
   }, [config, open])
 
-  const actionOptionLabels = useMemo(
-    () => ({
-      ARoll: t('organizer.settings.actions.aRoll'),
-      BRoll: t('organizer.settings.actions.bRoll'),
-      Delete: t('organizer.settings.actions.delete'),
-      Skip: t('organizer.settings.actions.skip'),
-      Custom1: t('organizer.settings.actions.customFolder1'),
-      Custom2: t('organizer.settings.actions.customFolder2'),
-      Custom3: t('organizer.settings.actions.customFolder3'),
-      Custom4: t('organizer.settings.actions.customFolder4'),
-    }),
-    [t]
-  )
-
-  const handleActionChange = (
+  const handleTypeChange = (
     direction: SwipeDirection,
-    actionId: SwipeActionOptionId
+    type: ActionType
+  ) => {
+    setDraftConfig(prev => {
+      const currentAction = prev.swipe[direction]
+      let newAction: SwipeAction
+
+      if (type === 'Move') {
+        // preserve target if already move, else default
+        newAction = { 
+          type: 'Move', 
+          target: currentAction.type === 'Move' ? currentAction.target : 'New Folder' 
+        }
+      } else {
+        newAction = { type }
+      }
+
+      return {
+        swipe: {
+          ...prev.swipe,
+          [direction]: newAction,
+        },
+      }
+    })
+  }
+
+  const handleTargetChange = (
+    direction: SwipeDirection,
+    target: string
   ) => {
     setDraftConfig(prev => ({
       swipe: {
         ...prev.swipe,
-        [direction]: optionIdToAction(actionId),
+        [direction]: { type: 'Move', target },
       },
     }))
   }
+
+
 
   const handleResetDefaults = () => {
     setDraftConfig(DEFAULT_ORGANIZER_CONFIG)
@@ -111,31 +116,51 @@ export function OrganizerSettings({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-2">
-          {SWIPE_DIRECTIONS.map(direction => (
-            <div key={direction} className="grid gap-2">
-              <Label htmlFor={`swipe-${direction}`}>
-                {t(`organizer.settings.directions.${direction}`)}
-              </Label>
-              <Select
-                value={actionToOptionId(draftConfig.swipe[direction])}
-                onValueChange={value =>
-                  handleActionChange(direction, value as SwipeActionOptionId)
-                }
-              >
-                <SelectTrigger id={`swipe-${direction}`} className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ACTION_OPTIONS.map(option => (
-                    <SelectItem key={option} value={option}>
-                      {actionOptionLabels[option]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          ))}
+        <div className="grid gap-6 py-4">
+          {SWIPE_DIRECTIONS.map(direction => {
+            const action = draftConfig.swipe[direction]
+            return (
+              <div key={direction} className="grid gap-2 p-4 border rounded-lg bg-muted/10">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor={`swipe-${direction}`} className="font-semibold capitalize">
+                    {t(`organizer.settings.directions.${direction}`)}
+                  </Label>
+                  <Select
+                    value={action.type}
+                    onValueChange={value =>
+                      handleTypeChange(direction, value as ActionType)
+                    }
+                  >
+                    <SelectTrigger id={`swipe-${direction}`} className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Move">{t('organizer.actions.move')}</SelectItem>
+                      <SelectItem value="Delete">{t('organizer.actions.delete')}</SelectItem>
+                      <SelectItem value="Skip">{t('organizer.actions.skip')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {action.type === 'Move' && (
+                  <div className="grid gap-1.5">
+                    <Label htmlFor={`target-${direction}`} className="text-xs text-muted-foreground">
+                      {t('organizer.settings.targetFolder')}
+                    </Label>
+                    <div className="flex gap-2">
+                       <input
+                        id={`target-${direction}`}
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                        value={action.target}
+                        onChange={(e) => handleTargetChange(direction, e.target.value)}
+                        placeholder="e.g. A-Roll"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
 
         <DialogFooter className="flex items-center justify-between gap-2 sm:justify-between">

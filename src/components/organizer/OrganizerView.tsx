@@ -6,7 +6,6 @@ import { commands } from '@/lib/bindings'
 import type {
   OrganizerConfig,
   SwipeAction,
-  VideoClip,
 } from '@/lib/tauri-bindings'
 import { useOrganizerStore } from '@/store/organizer-store'
 import { useUIStore } from '@/store/ui-store'
@@ -15,6 +14,7 @@ import { VideoPlayer } from './VideoPlayer'
 import { SwipeCard } from './SwipeCard'
 import { OrganizerSettings } from './OrganizerSettings'
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp'
+import { ProgressBar } from './ProgressBar'
 import { toast } from 'sonner'
 import { useOrganizerKeyboard } from '@/hooks/useOrganizerKeyboard'
 import {
@@ -37,6 +37,8 @@ export function OrganizerView() {
   const playbackRate = useOrganizerStore(state => state.playbackRate)
   const isPlaying = useOrganizerStore(state => state.isPlaying)
   const sourceDir = useOrganizerStore(state => state.sourceDir)
+  const undoStack = useOrganizerStore(state => state.undoStack)
+  const processedCount = useOrganizerStore(state => state.processedCount)
   const reset = useOrganizerStore(state => state.reset)
   const organizerSettingsOpen = useUIStore(state => state.organizerSettingsOpen)
   const setOrganizerSettingsOpen = useUIStore(
@@ -73,30 +75,26 @@ export function OrganizerView() {
   }, [])
 
   const runUndo = async () => {
-    const undoEntry = undo()
-    if (!undoEntry) {
+    const lastEntry = undoStack[undoStack.length - 1]
+    if (!lastEntry) {
       toast.info(t('organizer.undo.empty'))
       return
     }
 
-    interface MaybeUndoAction {
-      undoAction?: (
-        clip: VideoClip,
-        originalPath: string
-      ) => Promise<
-        { status: 'ok'; data: null } | { status: 'error'; error: string }
-      >
+    // Optimistically undo in UI? Or wait for FS?
+    // Wait for FS is safer to ensure file is back.
+    const result = await commands.undoAction(
+      lastEntry.currentPath,
+      lastEntry.originalPath
+    )
+
+    if (result.status === 'error') {
+      toast.error(t('organizer.undo.error', { message: result.error }))
+      return
     }
-    const maybeUndoAction = (commands as unknown as MaybeUndoAction).undoAction
-    if (maybeUndoAction) {
-      const result = await maybeUndoAction(
-        undoEntry.clip,
-        undoEntry.originalPath
-      )
-      if (result.status === 'error') {
-        toast.error(t('organizer.undo.error', { message: result.error }))
-      }
-    }
+
+    undo() // Update store state
+    toast.success(t('organizer.undo.success', { filename: lastEntry.clip.filename }))
   }
 
   const saveOrganizerConfig = async (config: OrganizerConfig) => {
@@ -120,6 +118,7 @@ export function OrganizerView() {
 
       if (selected && typeof selected === 'string') {
         setIsLoading(true)
+        reset()
         const result = await commands.loadVideos(selected)
 
         if (result.status === 'ok') {
@@ -148,27 +147,20 @@ export function OrganizerView() {
 
     const action: SwipeAction = organizerConfig.swipe[direction]
 
-    // Task 6 adds the real Rust process_clip command.
-    // For now we call it only when available and always keep queue state in sync.
-    interface MaybeProcessClip {
-      processClip?: (
-        clip: typeof currentClip,
-        action: SwipeAction
-      ) => Promise<
-        { status: 'ok'; data: null } | { status: 'error'; error: string }
-      >
-    }
-    const maybeProcessClip = (commands as unknown as MaybeProcessClip)
-      .processClip
-    if (maybeProcessClip) {
-      const result = await maybeProcessClip(currentClip, action)
-      if (result.status === 'error') {
-        toast.error(t('organizer.loadError', { message: result.error }))
-        return
-      }
+    // Process file
+    const result = await commands.processClip(currentClip, action)
+    
+    if (result.status === 'error') {
+      toast.error(t('organizer.processError', { message: result.error }))
+      return
     }
 
-    applyDecision(action, currentClip.path)
+    // Success: newPath is in result.data
+    const newPath = result.data
+    applyDecision(action, newPath)
+    
+    // Optional: Toast for feedback? Maybe too noisy for rapid swiping.
+    // toast.success(t('organizer.processed'))
   }
 
   useOrganizerKeyboard({
@@ -192,23 +184,22 @@ export function OrganizerView() {
 
   if (clips.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full w-full p-8 text-center space-y-6">
-        <div className="bg-muted p-6 rounded-full">
-          <FolderOpen className="w-12 h-12 text-muted-foreground" />
+      <div className="flex flex-col items-center justify-center h-full w-full p-8 text-center gap-5">
+        <div className="rounded-2xl bg-muted/60 p-5 border border-border/40">
+          <FolderOpen className="w-10 h-10 text-muted-foreground/60" />
         </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold tracking-tight">
+        <div className="space-y-1.5">
+          <h2 className="text-base font-semibold tracking-tight text-foreground">
             {t('organizer.emptyState.title')}
           </h2>
-          <p className="text-muted-foreground max-w-sm mx-auto">
+          <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
             {t('organizer.emptyState.description')}
           </p>
         </div>
         <Button
-          size="lg"
           onClick={handleSelectFolder}
           disabled={isLoading}
-          className="min-w-[200px]"
+          className="h-8 px-4 text-xs"
         >
           {isLoading
             ? t('organizer.loading')
@@ -218,15 +209,19 @@ export function OrganizerView() {
     )
   }
 
-  // Show finished state if index >= clips.length
   if (!currentClip && clips.length > 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full w-full">
-        <h2 className="text-2xl font-bold">{t('organizer.complete.title')}</h2>
-        <p className="text-muted-foreground mt-2">
-          {t('organizer.complete.description')}
-        </p>
-        <Button className="mt-6" variant="outline" onClick={reset}>
+      <div className="flex flex-col items-center justify-center h-full w-full gap-3">
+        <div className="rounded-2xl bg-muted/60 p-5 border border-border/40">
+          <FolderOpen className="w-10 h-10 text-muted-foreground/60" />
+        </div>
+        <div className="space-y-1.5 text-center">
+          <h2 className="text-base font-semibold text-foreground">{t('organizer.complete.title')}</h2>
+          <p className="text-xs text-muted-foreground">
+            {t('organizer.complete.description')}
+          </p>
+        </div>
+        <Button className="mt-2 h-8 px-4 text-xs" variant="outline" onClick={reset}>
           {t('organizer.complete.button')}
         </Button>
       </div>
@@ -234,39 +229,51 @@ export function OrganizerView() {
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-background">
-      <div className="h-10 border-b flex items-center px-4 justify-between bg-muted/20 shrink-0 select-none">
-        <div
-          className="text-xs font-medium text-muted-foreground truncate max-w-[50%]"
-          title={sourceDir || ''}
+    <div className="flex flex-col h-full w-full">
+      <div className="h-9 border-b flex items-center px-3 justify-between bg-muted/10 shrink-0 select-none">
+        <button
+          type="button"
+          onClick={handleSelectFolder}
+          disabled={isLoading}
+          title={t('organizer.changeFolder')}
+          className="flex items-center gap-1.5 min-w-0 text-[11px] text-muted-foreground/70 hover:text-foreground transition-colors truncate font-medium group disabled:opacity-50"
         >
-          {sourceDir}
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="text-xs font-medium text-muted-foreground">
-            {currentIndex + 1} / {clips.length}
+          <FolderOpen className="h-3 w-3 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
+          <span className="truncate">{sourceDir}</span>
+        </button>
+        <div className="flex items-center gap-3">
+          <ProgressBar
+            processed={processedCount}
+            total={clips.length + processedCount}
+            className="w-24 hidden sm:flex"
+          />
+          <span className="text-[10px] text-muted-foreground/50 tabular-nums">
+            {currentIndex + 1} / {clips.length + processedCount}
+          </span>
+          <div className="flex items-center gap-0.5">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setOrganizerShortcutsHelpOpen(true)}
+              title={t('organizer.shortcuts.title')}
+              className="h-6 w-6 text-muted-foreground/60 hover:text-foreground"
+            >
+              <Keyboard className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setOrganizerSettingsOpen(true)}
+              title={t('organizer.settings.title')}
+              className="h-6 w-6 text-muted-foreground/60 hover:text-foreground"
+            >
+              <Settings2 className="h-3.5 w-3.5" />
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setOrganizerShortcutsHelpOpen(true)}
-            title={t('organizer.shortcuts.title')}
-          >
-            <Keyboard className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setOrganizerSettingsOpen(true)}
-            title={t('organizer.settings.title')}
-          >
-            <Settings2 className="h-4 w-4" />
-          </Button>
         </div>
       </div>
-      <div className="flex-1 overflow-hidden relative bg-black p-4 flex items-center justify-center">
-        {/* Container limits max size of card */}
-        <div className="relative w-full h-full max-w-4xl max-h-[80vh] aspect-video">
+      <div className="flex-1 overflow-hidden relative flex flex-col items-center justify-center p-4 gap-3">
+        <div className="relative w-full h-full max-w-4xl flex flex-col justify-center gap-3">
           <SwipeCard
             swipeConfig={organizerConfig.swipe}
             onSwipe={handleSwipe}

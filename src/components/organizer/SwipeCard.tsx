@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import type { SwipeConfig } from '@/lib/tauri-bindings'
 import { cn } from '@/lib/utils'
 import {
@@ -15,11 +14,9 @@ interface SwipeCardProps {
   disabled?: boolean
 }
 
-function actionLabel(
-  action: SwipeConfig['up'],
-  t: (key: string) => string
-): string {
-  return t(`organizer.action.${action.type}`)
+export function actionLabel(action: SwipeConfig['up']): string {
+  if (action.type === 'Move') return action.target
+  return action.type
 }
 
 export function SwipeCard({
@@ -28,7 +25,6 @@ export function SwipeCard({
   onSwipe,
   disabled = false,
 }: SwipeCardProps) {
-  const { t } = useTranslation()
   const [displayOffset, setDisplayOffset] = useState<GestureOffset>({
     x: 0,
     y: 0,
@@ -88,9 +84,7 @@ export function SwipeCard({
   resetGestureRef.current = gestures.reset
 
   useEffect(() => {
-    if (isAnimatingOut) {
-      return
-    }
+    if (isAnimatingOut) return
     setDisplayOffset(gestures.offset)
   }, [gestures.offset, isAnimatingOut])
 
@@ -98,65 +92,54 @@ export function SwipeCard({
   const cardOpacity = Math.max(0.7, 1 - Math.min(cardDistance / 520, 0.3))
   const cardRotation = displayOffset.x * 0.035
 
-  const directionLabels = {
-    up: actionLabel(swipeConfig.up, t),
-    down: actionLabel(swipeConfig.down, t),
-    left: actionLabel(swipeConfig.left, t),
-    right: actionLabel(swipeConfig.right, t),
-  }
+  const active = gestures.activeDirection
+
+  const badgeBase =
+    'rounded-full border border-white/20 bg-black/60 px-3 py-1 text-[11px] font-medium text-white/90 backdrop-blur-sm transition-all duration-150 select-none pointer-events-none whitespace-nowrap'
 
   return (
-    <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-xl bg-background">
-      <div className="pointer-events-none absolute inset-0 z-10">
+    <div className="relative flex h-full w-full flex-col items-center justify-center gap-2">
+      <div
+        className={cn(badgeBase, active === 'up' ? 'opacity-100 scale-105' : 'opacity-30')}
+      >
+        {actionLabel(swipeConfig.up)}
+      </div>
+
+      <div className="relative flex w-full flex-1 min-h-0 items-center gap-2">
         <div
-          className={cn(
-            'absolute left-1/2 top-3 -translate-x-1/2 rounded-full border px-3 py-1 text-xs font-medium transition-opacity',
-            gestures.activeDirection === 'up' ? 'opacity-100' : 'opacity-30'
-          )}
+          className={cn(badgeBase, 'shrink-0', active === 'left' ? 'opacity-100 scale-105' : 'opacity-30')}
         >
-          {directionLabels.up}
+          {actionLabel(swipeConfig.left)}
         </div>
+
         <div
           className={cn(
-            'absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full border px-3 py-1 text-xs font-medium transition-opacity',
-            gestures.activeDirection === 'down' ? 'opacity-100' : 'opacity-30'
+            'relative flex-1 h-full touch-none',
+            isShakeAnimating ? 'sortie-swipe-shake' : ''
           )}
+          style={{
+            opacity: cardOpacity,
+            transform: `translate3d(${displayOffset.x}px, ${displayOffset.y}px, 0) rotate(${cardRotation}deg)`,
+            transition: gestures.isDragging
+              ? 'none'
+              : 'transform 200ms ease-out, opacity 200ms ease-out',
+          }}
+          {...(disabled ? {} : gestures.bind)}
         >
-          {directionLabels.down}
+          {children}
         </div>
+
         <div
-          className={cn(
-            'absolute left-3 top-1/2 -translate-y-1/2 rounded-full border px-3 py-1 text-xs font-medium transition-opacity',
-            gestures.activeDirection === 'left' ? 'opacity-100' : 'opacity-30'
-          )}
+          className={cn(badgeBase, 'shrink-0', active === 'right' ? 'opacity-100 scale-105' : 'opacity-30')}
         >
-          {directionLabels.left}
-        </div>
-        <div
-          className={cn(
-            'absolute right-3 top-1/2 -translate-y-1/2 rounded-full border px-3 py-1 text-xs font-medium transition-opacity',
-            gestures.activeDirection === 'right' ? 'opacity-100' : 'opacity-30'
-          )}
-        >
-          {directionLabels.right}
+          {actionLabel(swipeConfig.right)}
         </div>
       </div>
 
       <div
-        className={cn(
-          'relative z-20 h-full w-full touch-none',
-          isShakeAnimating ? 'sortie-swipe-shake' : ''
-        )}
-        style={{
-          opacity: cardOpacity,
-          transform: `translate3d(${displayOffset.x}px, ${displayOffset.y}px, 0) rotate(${cardRotation}deg)`,
-          transition: gestures.isDragging
-            ? 'none'
-            : 'transform 200ms ease-out, opacity 200ms ease-out',
-        }}
-        {...(disabled ? {} : gestures.bind)}
+        className={cn(badgeBase, active === 'down' ? 'opacity-100 scale-105' : 'opacity-30')}
       >
-        {children}
+        {actionLabel(swipeConfig.down)}
       </div>
     </div>
   )
