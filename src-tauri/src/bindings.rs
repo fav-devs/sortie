@@ -19,6 +19,8 @@ pub fn generate_bindings() -> Builder<tauri::Wry> {
         organizer::load_videos,
         organizer::load_organizer_config,
         organizer::save_organizer_config,
+        organizer::process_clip,
+        organizer::undo_action,
     ])
 }
 

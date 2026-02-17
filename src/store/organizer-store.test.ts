@@ -38,7 +38,7 @@ describe('organizer store', () => {
     const store = useOrganizerStore.getState()
     store.setClips([clip('a'), clip('b')])
 
-    const entry = useOrganizerStore.getState().applyDecision(skipAction)
+    const entry = useOrganizerStore.getState().applyDecision(skipAction, '/tmp/processed/a.mp4')
     const state = useOrganizerStore.getState()
 
     expect(entry).not.toBeNull()
@@ -46,13 +46,14 @@ describe('organizer store', () => {
     expect(state.currentIndex).toBe(0)
     expect(state.processedCount).toBe(1)
     expect(state.undoStack).toHaveLength(1)
+    expect(state.undoStack[0]?.currentPath).toBe('/tmp/processed/a.mp4')
   })
 
   it('undoes last decision and restores clip to original position', () => {
     const store = useOrganizerStore.getState()
     store.setClips([clip('a'), clip('b'), clip('c')])
-    store.applyDecision(skipAction) // removes a
-    store.applyDecision(skipAction) // removes b
+    store.applyDecision(skipAction, '/tmp/processed/a.mp4') // removes a
+    store.applyDecision(skipAction, '/tmp/processed/b.mp4') // removes b
 
     const undone = useOrganizerStore.getState().undo()
     const state = useOrganizerStore.getState()
@@ -66,6 +67,7 @@ describe('organizer store', () => {
     expect(state.clips.map(c => c.id)).toEqual(['b', 'c'])
     expect(state.currentIndex).toBe(0)
     expect(state.processedCount).toBe(1)
+
     expect(state.undoStack).toHaveLength(1)
   })
 })

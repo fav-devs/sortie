@@ -143,14 +143,12 @@ pub struct VideoClip {
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 #[serde(tag = "type")]
 pub enum SwipeAction {
-    ARoll,
-    BRoll,
+    /// Move file to a specific folder (relative or absolute).
+    Move { target: String },
+    /// Move file to trash/delete.
     Delete,
+    /// Skip file (no action).
     Skip,
-    #[serde(rename = "custom_folder")]
-    CustomFolder {
-        path: String,
-    },
 }
 
 /// Mapping of swipe direction to action.
@@ -167,8 +165,12 @@ impl Default for SwipeConfig {
         Self {
             up: SwipeAction::Skip,
             down: SwipeAction::Delete,
-            left: SwipeAction::BRoll,
-            right: SwipeAction::ARoll,
+            left: SwipeAction::Move {
+                target: "B-Roll".to_string(),
+            },
+            right: SwipeAction::Move {
+                target: "A-Roll".to_string(),
+            },
         }
     }
 }

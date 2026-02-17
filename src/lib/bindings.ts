@@ -175,6 +175,29 @@ async saveOrganizerConfig(config: OrganizerConfig) : Promise<Result<null, string
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+/**
+ * Process a clip based on swipe action: move to subfolder or trash.
+ * Returns the new absolute path of the file.
+ */
+async processClip(clip: VideoClip, action: SwipeAction) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("process_clip", { clip, action }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Undo the last action: move file back to original location.
+ */
+async undoAction(currentPath: string, originalPath: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("undo_action", { currentPath, originalPath }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -235,7 +258,19 @@ export type RecoveryError =
 /**
  * Action to perform when user swipes in a direction.
  */
-export type SwipeAction = { type: "ARoll" } | { type: "BRoll" } | { type: "Delete" } | { type: "Skip" } | { type: "custom_folder"; path: string }
+export type SwipeAction = 
+/**
+ * Move file to a specific folder (relative or absolute).
+ */
+{ type: "Move"; target: string } | 
+/**
+ * Move file to trash/delete.
+ */
+{ type: "Delete" } | 
+/**
+ * Skip file (no action).
+ */
+{ type: "Skip" }
 /**
  * Mapping of swipe direction to action.
  */

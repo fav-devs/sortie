@@ -6,6 +6,7 @@ export interface UndoEntry {
   clip: VideoClip
   action: SwipeAction
   originalPath: string
+  currentPath: string
   removedIndex: number
 }
 
@@ -23,7 +24,7 @@ interface OrganizerState {
   nextClip: () => void
   applyDecision: (
     action: SwipeAction,
-    originalPath?: string
+    currentPath: string
   ) => UndoEntry | null
   undo: () => UndoEntry | null
   setPlaybackRate: (rate: number) => void
@@ -65,7 +66,7 @@ export const useOrganizerStore = create<OrganizerState>()(
           'nextClip'
         ),
 
-      applyDecision: (action, originalPath) => {
+      applyDecision: (action, currentPath) => {
         const state = get()
         const currentClip = state.clips[state.currentIndex]
         if (!currentClip) {
@@ -76,7 +77,8 @@ export const useOrganizerStore = create<OrganizerState>()(
         const undoEntry: UndoEntry = {
           clip: currentClip,
           action,
-          originalPath: originalPath ?? currentClip.path,
+          originalPath: currentClip.path,
+          currentPath,
           removedIndex,
         }
 

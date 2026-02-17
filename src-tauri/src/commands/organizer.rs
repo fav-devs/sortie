@@ -139,3 +139,89 @@ pub async fn save_organizer_config(app: AppHandle, config: OrganizerConfig) -> R
     log::info!("Saved organizer config to {:?}", config_path);
     Ok(())
 }
+
+/// Process a clip based on swipe action: move to subfolder or trash.
+/// Returns the new absolute path of the file.
+#[tauri::command]
+#[specta::specta]
+pub async fn process_clip(clip: VideoClip, action: crate::types::SwipeAction) -> Result<String, String> {
+    let source_path = PathBuf::from(&clip.path);
+    if !source_path.exists() {
+        return Err("Source file not found".to_string());
+    }
+
+    let parent_dir = source_path
+        .parent()
+        .ok_or_else(|| "Cannot determine parent directory".to_string())?;
+
+    let target_dir = match action {
+        crate::types::SwipeAction::Move { target } => {
+            let p = PathBuf::from(&target);
+            if p.is_absolute() {
+                p
+            } else {
+                parent_dir.join(p)
+            }
+        }
+        crate::types::SwipeAction::Delete => parent_dir.join("_Trash"),
+        crate::types::SwipeAction::Skip => return Ok(clip.path),
+    };
+
+    if !target_dir.exists() {
+        std::fs::create_dir_all(&target_dir)
+            .map_err(|e| format!("Failed to create target directory: {e}"))?;
+    }
+
+    let file_name = source_path
+        .file_name()
+        .ok_or_else(|| "Invalid filename".to_string())?;
+    let target_path = target_dir.join(file_name);
+
+    if target_path.exists() {
+        return Err(format!(
+            "Target file already exists: {}",
+            target_path.to_string_lossy()
+        ));
+    }
+
+    std::fs::rename(&source_path, &target_path)
+        .map_err(|e| format!("Failed to move file: {e}"))?;
+
+    log::info!(
+        "Moved {} to {}",
+        source_path.display(),
+        target_path.display()
+    );
+    Ok(target_path.to_string_lossy().to_string())
+}
+
+/// Undo the last action: move file back to original location.
+#[tauri::command]
+#[specta::specta]
+pub async fn undo_action(current_path: String, original_path: String) -> Result<(), String> {
+    let current = PathBuf::from(&current_path);
+    let original = PathBuf::from(&original_path);
+
+    if !current.exists() {
+        return Err(format!("File not found at current path: {}", current.display()));
+    }
+
+    if let Some(parent) = original.parent() {
+        if !parent.exists() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to recreate original directory: {e}"))?;
+        }
+    }
+
+    if original.exists() {
+        return Err(format!(
+            "File already exists at original path: {}",
+            original.display()
+        ));
+    }
+
+    std::fs::rename(&current, &original).map_err(|e| format!("Failed to move file back: {e}"))?;
+
+    log::info!("Restored {} to {}", current.display(), original.display());
+    Ok(())
+}
