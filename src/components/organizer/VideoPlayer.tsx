@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { convertFileSrc } from '@tauri-apps/api/core'
 import type { VideoClip } from '@/lib/tauri-bindings'
 import { cn } from '@/lib/utils'
@@ -7,6 +8,10 @@ interface VideoPlayerProps {
   currentClip: VideoClip | null
   preloadNext?: VideoClip[]
   className?: string
+  playbackRate?: number
+  isPlaying?: boolean
+  onPlaybackRateChange?: (rate: number) => void
+  onPlayingChange?: (isPlaying: boolean) => void
 }
 
 const PLAYBACK_RATES = [0.25, 0.5, 1, 1.5, 2]
@@ -15,13 +20,40 @@ export function VideoPlayer({
   currentClip,
   preloadNext = [],
   className,
+  playbackRate: controlledPlaybackRate,
+  isPlaying: controlledIsPlaying,
+  onPlaybackRateChange,
+  onPlayingChange,
 }: VideoPlayerProps) {
+  const { t } = useTranslation()
   const videoRef = useRef<HTMLVideoElement>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
+  const [internalIsPlaying, setInternalIsPlaying] = useState(false)
   const [volume, setVolume] = useState(1)
-  const [playbackRate, setPlaybackRate] = useState(1)
+  const [internalPlaybackRate, setInternalPlaybackRate] = useState(1)
+  const isPlaying = controlledIsPlaying ?? internalIsPlaying
+  const playbackRate = controlledPlaybackRate ?? internalPlaybackRate
 
   const currentSrc = currentClip ? convertFileSrc(currentClip.path) : null
+
+  const updatePlaying = useCallback(
+    (playing: boolean) => {
+      if (controlledIsPlaying === undefined) {
+        setInternalIsPlaying(playing)
+      }
+      onPlayingChange?.(playing)
+    },
+    [controlledIsPlaying, onPlayingChange]
+  )
+
+  const updatePlaybackRate = useCallback(
+    (rate: number) => {
+      if (controlledPlaybackRate === undefined) {
+        setInternalPlaybackRate(rate)
+      }
+      onPlaybackRateChange?.(rate)
+    },
+    [controlledPlaybackRate, onPlaybackRateChange]
+  )
 
   useEffect(() => {
     const video = videoRef.current
@@ -43,6 +75,22 @@ export function VideoPlayer({
 
   useEffect(() => {
     const video = videoRef.current
+    if (!video || !currentSrc || controlledIsPlaying === undefined) {
+      return
+    }
+
+    if (controlledIsPlaying) {
+      void video.play().catch(() => {
+        updatePlaying(false)
+      })
+      return
+    }
+
+    video.pause()
+  }, [controlledIsPlaying, currentSrc, updatePlaying])
+
+  useEffect(() => {
+    const video = videoRef.current
     if (!video) {
       return
     }
@@ -60,12 +108,12 @@ export function VideoPlayer({
 
     void video
       .play()
-      .then(() => setIsPlaying(true))
+      .then(() => updatePlaying(true))
       .catch(() => {
         // Autoplay can be blocked by platform/browser policy. User can still press play.
-        setIsPlaying(false)
+        updatePlaying(false)
       })
-  }, [currentSrc])
+  }, [currentSrc, updatePlaying])
 
   const togglePlayback = async () => {
     const video = videoRef.current
@@ -75,10 +123,10 @@ export function VideoPlayer({
 
     if (video.paused) {
       await video.play()
-      setIsPlaying(true)
+      updatePlaying(true)
     } else {
       video.pause()
-      setIsPlaying(false)
+      updatePlaying(false)
     }
   }
 
@@ -95,14 +143,14 @@ export function VideoPlayer({
             ref={videoRef}
             className="aspect-video h-full w-full bg-black"
             preload="auto"
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => setIsPlaying(false)}
-            onEnded={() => setIsPlaying(false)}
+            onPlay={() => updatePlaying(true)}
+            onPause={() => updatePlaying(false)}
+            onEnded={() => updatePlaying(false)}
             playsInline
           />
         ) : (
           <div className="flex aspect-video items-center justify-center text-sm text-muted-foreground">
-            Select a folder to start reviewing clips
+            {t('organizer.player.empty')}
           </div>
         )}
       </div>
@@ -113,6 +161,7 @@ export function VideoPlayer({
           onClick={togglePlayback}
           disabled={!currentClip}
           className="rounded-md border border-border px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+          data-no-swipe
         >
           {isPlaying ? 'Pause' : 'Play'}
         </button>
@@ -128,6 +177,7 @@ export function VideoPlayer({
             disabled={!currentClip}
             onChange={event => setVolume(Number(event.target.value))}
             className="w-28"
+            data-no-swipe
           />
         </label>
 
@@ -136,8 +186,9 @@ export function VideoPlayer({
           <select
             value={playbackRate}
             disabled={!currentClip}
-            onChange={event => setPlaybackRate(Number(event.target.value))}
+            onChange={event => updatePlaybackRate(Number(event.target.value))}
             className="rounded-md border border-border bg-background px-2 py-1"
+            data-no-swipe
           >
             {PLAYBACK_RATES.map(rate => (
               <option key={rate} value={rate}>

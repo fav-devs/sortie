@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 
 export type SwipeDirection = 'up' | 'down' | 'left' | 'right'
 
-interface GestureOffset {
+export interface GestureOffset {
   x: number
   y: number
 }
@@ -51,6 +51,15 @@ export function useOrganizerGestures({
 
   const onPointerDown: React.PointerEventHandler<HTMLElement> = event => {
     if (!event.isPrimary) {
+      return
+    }
+
+    const target = event.target as HTMLElement
+    if (
+      target.closest(
+        'button, input, select, textarea, a, [data-no-swipe], [contenteditable="true"]'
+      )
+    ) {
       return
     }
 

@@ -9,6 +9,8 @@ describe('UIStore', () => {
       rightSidebarVisible: true,
       commandPaletteOpen: false,
       preferencesOpen: false,
+      organizerSettingsOpen: false,
+      organizerShortcutsHelpOpen: false,
     })
   })
 
@@ -18,6 +20,8 @@ describe('UIStore', () => {
     expect(state.rightSidebarVisible).toBe(true)
     expect(state.commandPaletteOpen).toBe(false)
     expect(state.preferencesOpen).toBe(false)
+    expect(state.organizerSettingsOpen).toBe(false)
+    expect(state.organizerShortcutsHelpOpen).toBe(false)
   })
 
   it('toggles left sidebar visibility', () => {
@@ -58,5 +62,25 @@ describe('UIStore', () => {
 
     toggleCommandPalette()
     expect(useUIStore.getState().commandPaletteOpen).toBe(false)
+  })
+
+  it('toggles organizer settings dialog', () => {
+    const { toggleOrganizerSettings } = useUIStore.getState()
+
+    toggleOrganizerSettings()
+    expect(useUIStore.getState().organizerSettingsOpen).toBe(true)
+
+    toggleOrganizerSettings()
+    expect(useUIStore.getState().organizerSettingsOpen).toBe(false)
+  })
+
+  it('toggles organizer shortcuts help dialog', () => {
+    const { toggleOrganizerShortcutsHelp } = useUIStore.getState()
+
+    toggleOrganizerShortcutsHelp()
+    expect(useUIStore.getState().organizerShortcutsHelpOpen).toBe(true)
+
+    toggleOrganizerShortcutsHelp()
+    expect(useUIStore.getState().organizerShortcutsHelpOpen).toBe(false)
   })
 })
