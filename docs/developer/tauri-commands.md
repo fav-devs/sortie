@@ -221,15 +221,20 @@ vi.mock('@/lib/tauri-bindings', () => ({
 
 ## Available Commands
 
-| Command                   | Parameters                            | Returns                          | Description         |
-| ------------------------- | ------------------------------------- | -------------------------------- | ------------------- |
-| `greet`                   | `name: string`                        | `string`                         | Simple greeting     |
-| `loadPreferences`         | none                                  | `Result<AppPreferences, string>` | Load preferences    |
-| `savePreferences`         | `preferences: AppPreferences`         | `Result<null, string>`           | Save preferences    |
-| `sendNativeNotification`  | `title: string, body: string \| null` | `Result<null, string>`           | System notification |
-| `saveEmergencyData`       | `filename: string, data: JsonValue`   | `Result<null, string>`           | Save recovery data  |
-| `loadEmergencyData`       | `filename: string`                    | `Result<JsonValue, string>`      | Load recovery data  |
-| `cleanupOldRecoveryFiles` | none                                  | `Result<number, string>`         | Cleanup old files   |
+| Command                   | Parameters                                  | Returns                           | Description         |
+| ------------------------- | ------------------------------------------- | --------------------------------- | ------------------- |
+| `greet`                   | `name: string`                              | `string`                          | Simple greeting     |
+| `loadPreferences`         | none                                        | `Result<AppPreferences, string>`  | Load preferences    |
+| `savePreferences`         | `preferences: AppPreferences`               | `Result<null, string>`            | Save preferences    |
+| `sendNativeNotification`  | `title: string, body: string \| null`       | `Result<null, string>`            | System notification |
+| `saveEmergencyData`       | `filename: string, data: JsonValue`         | `Result<null, string>`            | Save recovery data  |
+| `loadEmergencyData`       | `filename: string`                          | `Result<JsonValue, string>`       | Load recovery data  |
+| `cleanupOldRecoveryFiles` | none                                        | `Result<number, string>`          | Cleanup old files   |
+| `loadVideos`              | `path: string`                              | `Result<VideoClip[], string>`     | Load video clips    |
+| `loadOrganizerConfig`     | none                                        | `Result<OrganizerConfig, string>` | Load swipe settings |
+| `saveOrganizerConfig`     | `config: OrganizerConfig`                   | `Result<null, string>`            | Save swipe settings |
+| `processClip`             | `clip: VideoClip, action: SwipeAction`      | `Result<string, string>`          | Process clip action |
+| `undoAction`              | `currentPath: string, originalPath: string` | `Result<null, string>`            | Undo last action    |
 
 ## Dependencies
 

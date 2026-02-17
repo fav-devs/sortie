@@ -117,6 +117,7 @@
 
   "organizer.title": "Sortie",
   "organizer.selectFolder": "Select Folder",
+  "organizer.changeFolder": "Change source folder",
   "organizer.openFolder": "Open Folder",
   "organizer.noClips": "No video clips found in this folder.",
   "organizer.loadError": "Failed to load videos: {{message}}",
@@ -142,6 +143,10 @@
   "organizer.settings.cancel": "Cancel",
   "organizer.settings.saved": "Organizer settings saved.",
   "organizer.settings.saveError": "Failed to save settings: {{message}}",
+  "organizer.actions.move": "Move to Folder",
+  "organizer.actions.delete": "Delete / Trash",
+  "organizer.actions.skip": "Skip",
+  "organizer.settings.targetFolder": "Target Subfolder Name",
   "organizer.settings.resetDefaults": "Reset to defaults",
   "organizer.settings.directions.up": "Swipe Up",
   "organizer.settings.directions.down": "Swipe Down",
@@ -161,5 +166,16 @@
   "organizer.shortcuts.playPause": "Play or pause current clip",
   "organizer.shortcuts.speed": "Set playback speed (0.25x to 2x)",
   "organizer.shortcuts.undo": "Undo last action",
-  "organizer.shortcuts.toggleHelp": "Toggle this shortcuts help"
+  "organizer.shortcuts.toggleHelp": "Toggle this shortcuts help",
+  "organizer.queue.title": "Queue",
+  "organizer.queue.empty": "No clips loaded",
+  "organizer.properties.title": "Video Properties",
+  "organizer.properties.noClip": "No video selected",
+  "organizer.properties.filename": "Filename",
+  "organizer.properties.format": "Format",
+  "organizer.properties.duration": "Duration",
+  "organizer.properties.size": "Size",
+  "organizer.properties.path": "Path",
+  "organizer.processError": "Failed to process clip: {{message}}",
+  "organizer.undo.success": "Restored {{filename}}"
 }

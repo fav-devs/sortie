@@ -39,36 +39,37 @@ export function MainWindow() {
   useMainWindowEventListeners()
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden rounded-xl bg-background">
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-[#141414]">
       <TitleBar />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden p-3 gap-3">
         <ResizablePanelGroup direction="horizontal">
           <ResizablePanel
             defaultSize={LAYOUT.leftSidebar.default}
             minSize={LAYOUT.leftSidebar.min}
             maxSize={LAYOUT.leftSidebar.max}
-            className={cn(!leftSidebarVisible && 'hidden')}
+            className={cn(!leftSidebarVisible && 'hidden', 'pr-1.5')}
           >
             <LeftSideBar />
           </ResizablePanel>
 
-          <ResizableHandle className={cn(!leftSidebarVisible && 'hidden')} />
+          <ResizableHandle className={cn(!leftSidebarVisible && 'hidden', 'w-1 bg-transparent')} />
 
           <ResizablePanel
             defaultSize={MAIN_CONTENT_DEFAULT}
             minSize={LAYOUT.main.min}
+            className="px-1.5"
           >
             <MainWindowContent />
           </ResizablePanel>
 
-          <ResizableHandle className={cn(!rightSidebarVisible && 'hidden')} />
+          <ResizableHandle className={cn(!rightSidebarVisible && 'hidden', 'w-1 bg-transparent')} />
 
           <ResizablePanel
             defaultSize={LAYOUT.rightSidebar.default}
             minSize={LAYOUT.rightSidebar.min}
             maxSize={LAYOUT.rightSidebar.max}
-            className={cn(!rightSidebarVisible && 'hidden')}
+            className={cn(!rightSidebarVisible && 'hidden', 'pl-1.5')}
           >
             <RightSideBar />
           </ResizablePanel>
