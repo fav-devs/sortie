@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { SwipeConfig } from '@/lib/tauri-bindings'
 import { cn } from '@/lib/utils'
 import {
   useOrganizerGestures,
+  type GestureOffset,
   type SwipeDirection,
 } from '@/hooks/useOrganizerGestures'
 
@@ -13,21 +15,11 @@ interface SwipeCardProps {
   disabled?: boolean
 }
 
-const ACTION_LABELS: Record<string, string> = {
-  ARoll: 'A-roll',
-  BRoll: 'B-roll',
-  Delete: 'Delete',
-  Skip: 'Skip',
-  custom_folder: 'Custom',
-}
-
-interface GestureOffset {
-  x: number
-  y: number
-}
-
-function actionLabel(action: SwipeConfig['up']): string {
-  return ACTION_LABELS[action.type] ?? action.type
+function actionLabel(
+  action: SwipeConfig['up'],
+  t: (key: string) => string
+): string {
+  return t(`organizer.action.${action.type}`)
 }
 
 export function SwipeCard({
@@ -36,25 +28,26 @@ export function SwipeCard({
   onSwipe,
   disabled = false,
 }: SwipeCardProps) {
+  const { t } = useTranslation()
   const [displayOffset, setDisplayOffset] = useState<GestureOffset>({
     x: 0,
     y: 0,
   })
   const [isAnimatingOut, setIsAnimatingOut] = useState(false)
   const [isShakeAnimating, setIsShakeAnimating] = useState(false)
-  let resetGesture: (() => void) | null = null
+  const resetGestureRef = useRef<(() => void) | null>(null)
 
   const gestures = useOrganizerGestures({
     threshold: 100,
     onGestureEnd: (direction, offset) => {
       if (disabled) {
-        resetGesture?.()
+        resetGestureRef.current?.()
         return
       }
 
       if (!direction) {
         setIsShakeAnimating(true)
-        resetGesture?.()
+        resetGestureRef.current?.()
         window.setTimeout(() => {
           setIsShakeAnimating(false)
         }, 180)
@@ -85,14 +78,14 @@ export function SwipeCard({
         try {
           await onSwipe(direction)
         } finally {
-          resetGesture?.()
+          resetGestureRef.current?.()
           setDisplayOffset({ x: 0, y: 0 })
           setIsAnimatingOut(false)
         }
       }, 200)
     },
   })
-  resetGesture = gestures.reset
+  resetGestureRef.current = gestures.reset
 
   useEffect(() => {
     if (isAnimatingOut) {
@@ -105,15 +98,12 @@ export function SwipeCard({
   const cardOpacity = Math.max(0.7, 1 - Math.min(cardDistance / 520, 0.3))
   const cardRotation = displayOffset.x * 0.035
 
-  const directionLabels = useMemo(
-    () => ({
-      up: actionLabel(swipeConfig.up),
-      down: actionLabel(swipeConfig.down),
-      left: actionLabel(swipeConfig.left),
-      right: actionLabel(swipeConfig.right),
-    }),
-    [swipeConfig]
-  )
+  const directionLabels = {
+    up: actionLabel(swipeConfig.up, t),
+    down: actionLabel(swipeConfig.down, t),
+    left: actionLabel(swipeConfig.left, t),
+    right: actionLabel(swipeConfig.right, t),
+  }
 
   return (
     <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-xl bg-background">
